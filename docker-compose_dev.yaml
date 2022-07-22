@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+
+  backend:
+    build:
+      context: ./docker-images/nginx_uwsgi
+      dockerfile: Dockerfile
+    image: tcc-backend/nginx_uwsgi:0.0.042
+    container_name: dev_backend
+    restart: always
+    tty: true
+    ports:
+      - "2010:80"
+    volumes:
+      - ../backend:/tcc-backend/app
+      - ../logs/backend:/tcc-backend/logs
+    networks:
+      - backend_network
+  
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_DATABASE=database
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - ./docker-images/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo-volume:/data/db
+    ports:
+      - '27017-27019:27017-27019'
+    networks:
+      - backend_network  
+networks:
+  backend_network:
+    driver: bridge
